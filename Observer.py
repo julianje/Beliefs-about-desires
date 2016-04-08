@@ -4,7 +4,6 @@
 Simple observer.
 """
 
-import numpy as np
 import copy
 from Agent import *
 
@@ -19,6 +18,16 @@ class Observer(object):
         self.CostPriorB = CostPriorB
         self.RewardPriorA = RewardPriorA
         self.RewardPriorB = RewardPriorB
+
+    def BuildPosterior(self, Likelihood):
+        """
+        Take an agent object with the likelihoods and integrate the observer's priors.
+        """
+        Likelihood.Costs[0].Integrate(CostPriorA)
+        Likelihood.Costs[1].Integrate(CostPriorB)
+        Likelihood.Rewards[0].Integrate(RewardPriorA)
+        Likelihood.Rewards[1].Integrate(RewardPriorB)
+        Likelihood.Normalize()
 
     def ObserveAction(self, choice, samples=10000):
         """
@@ -52,10 +61,12 @@ class Observer(object):
             E_RewardB = [j * probs[i]
                          for j in Agents[i].Rewards[1].Probabilities]
             # Add it to the likelihoods
-            P_CostA = [P_CostA[j]+E_CostA[j] for j in range(len(E_CostA))]
-            P_CostB = [P_CostB[j]+E_CostB[j] for j in range(len(E_CostB))]
-            P_RewardA = [P_RewardA[j]+E_RewardA[j] for j in range(len(E_RewardA))]
-            P_RewardB = [P_RewardB[j]+E_RewardB[j] for j in range(len(E_RewardB))]
+            P_CostA = [P_CostA[j] + E_CostA[j] for j in range(len(E_CostA))]
+            P_CostB = [P_CostB[j] + E_CostB[j] for j in range(len(E_CostB))]
+            P_RewardA = [P_RewardA[j] + E_RewardA[j]
+                         for j in range(len(E_RewardA))]
+            P_RewardB = [P_RewardB[j] + E_RewardB[j]
+                         for j in range(len(E_RewardB))]
         # Now update LAgent object
         LAgent.UpdateBeliefs(P_CostA, P_RewardA, P_CostB, P_RewardB)
         LAgent.Normalize()

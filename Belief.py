@@ -30,6 +30,16 @@ class Belief(object):
             return None
         self.Probabilities = [i*1.0/Norm for i in self.Probabilities]
 
+    def Integrate(self, ProbabilityVector):
+        """
+        Multiply belief by a new probablity vector.
+        This let's you add the prior or likelihood.
+        """
+        if len(self.Probabilities) != len(ProbabilityVector):
+            print "Integration vector doesn't have the right dimension."
+            return None
+        self.Probabilities = [self.Probabilities[i]*ProbabilityVector[i] for i in range(len(ProbabilityVector))]
+
     def HypothesisSpaceSize(self):
         return len(self.HypothesisSpace)
 
