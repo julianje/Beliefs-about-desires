@@ -36,14 +36,16 @@ class Agent(object):
         ) - self.Costs[1].ExpectedValue()
         return np.argmax([UtilityA, UtilityB])
 
-    def ResampleBeliefs(self):
+    def ResampleBeliefs(self, Knowledge=[0, 0, 0, 0], TrueValueReset=False):
         """
         Generate a random belief distribution for each dimension
+
+        Knowledge: vector determining if the sampled agent should know any dimension.
         """
-        self.Costs[0].ResetProbabilities()
-        self.Costs[1].ResetProbabilities()
-        self.Rewards[0].ResetProbabilities()
-        self.Rewards[1].ResetProbabilities()
+        self.Costs[0].ResetProbabilities(Knowledge[0], TrueValueReset)
+        self.Costs[1].ResetProbabilities(Knowledge[1], TrueValueReset)
+        self.Rewards[0].ResetProbabilities(Knowledge[2], TrueValueReset)
+        self.Rewards[1].ResetProbabilities(Knowledge[3], TrueValueReset)
 
     def Normalize(self):
         """
@@ -62,6 +64,15 @@ class Agent(object):
         self.Costs[1].Probabilities = NewBCostB
         self.Rewards[0].Probabilities = NewBRewardA
         self.Rewards[1].Probabilities = NewBRewardB
+
+    def UpdateTrueValues(self, TrueCostA, TrueCostB, TrueRewardA, TrueRewardB):
+        """
+        Push new truth values to the belief distributions
+        """
+        self.Costs[0].TrueValue = TrueCostA
+        self.Costs[1].TrueValue = TrueCostB
+        self.Rewards[0].TrueValue = TrueRewardA
+        self.Rewards[1].TrueValue = TrueRewardB
 
     def Display(self, Full=True):
         """

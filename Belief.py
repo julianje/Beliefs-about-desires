@@ -10,17 +10,18 @@ import numpy as np
 
 class Belief(object):
 
-    def __init__(self, HypothesisSpace, Probabilities):
+    def __init__(self, HypothesisSpace, Probabilities, TrueValue):
         """
         Belief class.
 
-        Create an agent with beliefs about her costs and rewards.
+        Contains a hypothesis space, a probability distribuion, and the true value.
         """
         if len(HypothesisSpace) != len(Probabilities):
             print "ERROR: Hypothesis space and probability vectors must match in length"
             return None
         self.HypothesisSpace = HypothesisSpace
         self.Probabilities = Probabilities
+        self.TrueValue = TrueValue
         self.Normalize()
 
     def Normalize(self):
@@ -28,7 +29,7 @@ class Belief(object):
         if not Norm > 0:
             print "Can't normalize. Probabilities don't add up to a positive value"
             return None
-        self.Probabilities = [i*1.0/Norm for i in self.Probabilities]
+        self.Probabilities = [i * 1.0 / Norm for i in self.Probabilities]
 
     def Integrate(self, ProbabilityVector):
         """
@@ -38,7 +39,9 @@ class Belief(object):
         if len(self.Probabilities) != len(ProbabilityVector):
             print "Integration vector doesn't have the right dimension."
             return None
-        self.Probabilities = [self.Probabilities[i]*ProbabilityVector[i] for i in range(len(ProbabilityVector))]
+        self.Probabilities = [self.Probabilities[
+            i] * ProbabilityVector[i] for i in range(len(ProbabilityVector))]
+        self.Normalize()
 
     def HypothesisSpaceSize(self):
         return len(self.HypothesisSpace)
@@ -47,14 +50,25 @@ class Belief(object):
         """
         Return expected value
         """
-        return sum([self.HypothesisSpace[i]*self.Probabilities[i] for i in range(len(self.HypothesisSpace))])
+        return sum([self.HypothesisSpace[i] * self.Probabilities[i] for i in range(len(self.HypothesisSpace))])
 
-    def ResetProbabilities(self):
+    def ResetProbabilities(self, Knowledge=0, ResetTrueValue=False):
         """
         Set a random belief distribution
+
+        Knowledge: Should the distribution be a delta?
         """
-        self.Probabilities = [random.random() for i in range(len(self.Probabilities))]
+        self.Probabilities = [random.random()
+                              for i in range(len(self.Probabilities))]
+        if Knowledge:
+            self.Probabilities = [int(i == max(self.Probabilities))
+                                  for i in self.Probabilities]
         self.Normalize()
+        if ResetTrueValue:
+            if Knowledge:
+                self.TrueValue = self.HypothesisSpace[np.argmax(self.Probabilities)]
+            else:
+                self.TrueValue = random.choice(self.HypothesisSpace)
 
     def Display(self, Full=True):
         """

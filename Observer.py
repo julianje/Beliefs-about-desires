@@ -10,7 +10,10 @@ from Agent import *
 
 class Observer(object):
 
-    def __init__(self, CostPriorA, RewardPriorA, CostPriorB, RewardPriorB):
+    def __init__(self, CostPriorA, RewardPriorA, CostPriorB, RewardPriorB, Knowledge=[0, 0, 0, 0]):
+        """
+        Knowledge indicates the costsA, costB, rewardA, and rewardB
+        """
         self.CostPriors = [CostPriorA, CostPriorB]
         self.RewardPriors = [RewardPriorA, RewardPriorB]
         # Create a model of an agent with the priors.
@@ -18,21 +21,24 @@ class Observer(object):
         self.CostPriorB = CostPriorB
         self.RewardPriorA = RewardPriorA
         self.RewardPriorB = RewardPriorB
+        self.Knowledge = Knowledge
 
     def BuildPosterior(self, Likelihood):
         """
         Take an agent object with the likelihoods and integrate the observer's priors.
         """
-        Likelihood.Costs[0].Integrate(CostPriorA)
-        Likelihood.Costs[1].Integrate(CostPriorB)
-        Likelihood.Rewards[0].Integrate(RewardPriorA)
-        Likelihood.Rewards[1].Integrate(RewardPriorB)
-        Likelihood.Normalize()
+        self.CostPriors[0].Integrate(Likelihood.Costs[0].Probabilities)
+        self.CostPriors[1].Integrate(Likelihood.Costs[1].Probabilities)
+        self.RewardPriors[0].Integrate(Likelihood.Rewards[0].Probabilities)
+        self.RewardPriors[1].Integrate(Likelihood.Rewards[1].Probabilities)
 
-    def ObserveAction(self, choice, samples=10000):
+    def ObserveAction(self, choice, TrueValueReset=True, samples=10000):
         """
         See an observed choice and infer the agents' costs and rewards
-        prior to making the choice
+        prior to making the choice.
+
+        Returns an Agent object will the expected distributions and true values,
+        as well as the list of sampled Agents and their respective probabilities of action
         """
         # Generate a bunch of agents!
         Agents = []
@@ -40,7 +46,7 @@ class Observer(object):
         for i in range(samples):
             Agents.append(Agent(copy.deepcopy(self.CostPriorA), copy.deepcopy(self.RewardPriorA),
                                 copy.deepcopy(self.CostPriorB), copy.deepcopy(self.RewardPriorB)))
-            Agents[i].ResampleBeliefs()
+            Agents[i].ResampleBeliefs(self.Knowledge, TrueValueReset)
             probs.append(Agents[i].ChoiceProb(choice))
         # Now create an agent with the likelihood!
         # To use as a skeleton.
@@ -52,6 +58,10 @@ class Observer(object):
         P_CostB = [0] * self.CostPriorB.HypothesisSpaceSize()
         P_RewardA = [0] * self.RewardPriorA.HypothesisSpaceSize()
         P_RewardB = [0] * self.RewardPriorB.HypothesisSpaceSize()
+        CostA_TrueVal = 0
+        CostB_TrueVal = 0
+        RewardA_TrueVal = 0
+        RewardB_TrueVal = 0
         for i in range(samples):
             # Get sample weighted by it's probability.
             E_CostA = [j * probs[i] for j in Agents[i].Costs[0].Probabilities]
@@ -67,7 +77,19 @@ class Observer(object):
                          for j in range(len(E_RewardA))]
             P_RewardB = [P_RewardB[j] + E_RewardB[j]
                          for j in range(len(E_RewardB))]
+            # Get expected true value of each dimension as well.
+            CostA_TrueVal += Agents[i].Costs[0].TrueValue * probs[i]
+            CostB_TrueVal += Agents[i].Costs[1].TrueValue * probs[i]
+            RewardA_TrueVal += Agents[i].Rewards[0].TrueValue * probs[i]
+            RewardB_TrueVal += Agents[i].Rewards[1].TrueValue * probs[i]
+        # Normalize true values
+        CostA_TrueVal /= sum(probs)*1.0
+        CostB_TrueVal /= sum(probs)*1.0
+        RewardA_TrueVal /= sum(probs)*1.0
+        RewardB_TrueVal /= sum(probs)*1.0
         # Now update LAgent object
         LAgent.UpdateBeliefs(P_CostA, P_RewardA, P_CostB, P_RewardB)
+        # And update true values
+        LAgent.UpdateTrueValues(CostA_TrueVal, CostB_TrueVal, RewardA_TrueVal, RewardB_TrueVal)
         LAgent.Normalize()
-        return LAgent
+        return [LAgent, Agents, probs]
