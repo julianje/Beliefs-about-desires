@@ -46,6 +46,12 @@ class Belief(object):
     def HypothesisSpaceSize(self):
         return len(self.HypothesisSpace)
 
+    def Reveal(self):
+        """
+        Set probability distribution to match true value
+        """
+        self.Probabilities = [(1 if self.HypothesisSpace[i] == self.TrueValue else 0) for i in range(len(self.Probabilities))]
+
     def ExpectedValue(self):
         """
         Return expected value

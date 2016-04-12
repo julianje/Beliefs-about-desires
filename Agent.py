@@ -75,6 +75,17 @@ class Agent(object):
         self.Rewards[0].TrueValue = TrueRewardA
         self.Rewards[1].TrueValue = TrueRewardB
 
+    def ChoiceChange(self):
+        """
+        Returns 1 if the agent would revise her choice after revealing the costs and rewards associated
+        with her choice, and 0 otherwise.
+        """
+        choice = self.MakeChoice()
+        self.Costs[choice].Reveal()
+        self.Rewards[choice].Reveal()
+        newchoice = self.MakeChoice()
+        return 1 if choice != newchoice else 0
+
     def Display(self, Full=True):
         """
         Print object attributes.

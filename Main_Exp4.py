@@ -115,4 +115,4 @@ p_H2 = p_Knowledgeable * p_Naive
 Norm = p_H1 + p_H2
 p_H1 /= Norm
 p_H2 /= Norm
-# Prediction = 1
+# Prediction =1
