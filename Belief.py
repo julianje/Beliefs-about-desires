@@ -52,21 +52,31 @@ class Belief(object):
         """
         return sum([self.HypothesisSpace[i] * self.Probabilities[i] for i in range(len(self.HypothesisSpace))])
 
-    def ResetProbabilities(self, Knowledge=0, ResetTrueValue=False):
+    def ResetProbabilities(self, Knowledge=0, FixTrueValue=False):
         """
         Set a random belief distribution
 
         Knowledge: Should the distribution be a delta?
         """
-        self.Probabilities = [random.random()
-                              for i in range(len(self.Probabilities))]
-        if Knowledge:
-            self.Probabilities = [int(i == max(self.Probabilities))
-                                  for i in self.Probabilities]
-        self.Normalize()
-        if ResetTrueValue:
+        if FixTrueValue:
+            if not Knowledge:
+                # Reset the probability distribution but leave true value fixed
+                self.Probabilities = [random.random()
+                                      for i in range(len(self.Probabilities))]
+            else:
+                # Force probability distribution to match knowledge.
+                self.Probabilities = [(1 if self.HypothesisSpace[
+                                       i] == self.TrueValue else 0) for i in range(len(self.Probabilities))]
+        else:
+            # If true value isn't fixed then reset the probabilities
+            self.Probabilities = [random.random()
+                                  for i in range(len(self.Probabilities))]
             if Knowledge:
-                self.TrueValue = self.HypothesisSpace[np.argmax(self.Probabilities)]
+                # Make a delta distribution and match the true value
+                self.Probabilities = [int(i == max(self.Probabilities))
+                                      for i in self.Probabilities]
+                self.TrueValue = self.HypothesisSpace[
+                    np.argmax(self.Probabilities)]
             else:
                 self.TrueValue = random.choice(self.HypothesisSpace)
 

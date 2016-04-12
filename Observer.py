@@ -10,9 +10,11 @@ from Agent import *
 
 class Observer(object):
 
-    def __init__(self, CostPriorA, RewardPriorA, CostPriorB, RewardPriorB, Knowledge=[0, 0, 0, 0]):
+    def __init__(self, CostPriorA, RewardPriorA, CostPriorB, RewardPriorB, Knowledge=[0, 0, 0, 0], FixValues=[0, 0, 0, 0]):
         """
-        Knowledge indicates the costsA, costB, rewardA, and rewardB
+        Knowledge indicates the costsA, rewardA, costB, and rewardB
+        FixValues indicates which of the four values should be constant
+        TrueValues indicate these values
         """
         self.CostPriors = [CostPriorA, CostPriorB]
         self.RewardPriors = [RewardPriorA, RewardPriorB]
@@ -22,6 +24,7 @@ class Observer(object):
         self.RewardPriorA = RewardPriorA
         self.RewardPriorB = RewardPriorB
         self.Knowledge = Knowledge
+        self.FixValues = FixValues
 
     def BuildPosterior(self, Likelihood):
         """
@@ -32,7 +35,7 @@ class Observer(object):
         self.RewardPriors[0].Integrate(Likelihood.Rewards[0].Probabilities)
         self.RewardPriors[1].Integrate(Likelihood.Rewards[1].Probabilities)
 
-    def ObserveAction(self, choice, TrueValueReset=True, samples=10000):
+    def ObserveAction(self, choice, samples=10000):
         """
         See an observed choice and infer the agents' costs and rewards
         prior to making the choice.
@@ -46,12 +49,12 @@ class Observer(object):
         for i in range(samples):
             Agents.append(Agent(copy.deepcopy(self.CostPriorA), copy.deepcopy(self.RewardPriorA),
                                 copy.deepcopy(self.CostPriorB), copy.deepcopy(self.RewardPriorB)))
-            Agents[i].ResampleBeliefs(self.Knowledge, TrueValueReset)
+            Agents[i].ResampleBeliefs(self.Knowledge, self.FixValues)
             probs.append(Agents[i].ChoiceProb(choice))
         # Now create an agent with the likelihood!
         # To use as a skeleton.
-        LAgent = Agent(self.CostPriorA, self.RewardPriorA,
-                       self.CostPriorB, self.RewardPriorB)
+        LAgent = Agent(copy.deepcopy(self.CostPriorA), copy.deepcopy(self.RewardPriorA),
+                       copy.deepcopy(self.CostPriorB), copy.deepcopy(self.RewardPriorB))
         # You need four sets of probabilities since it's a 2AFC and each option
         # has costs and rewards.
         P_CostA = [0] * self.CostPriorA.HypothesisSpaceSize()
@@ -83,10 +86,12 @@ class Observer(object):
             RewardA_TrueVal += Agents[i].Rewards[0].TrueValue * probs[i]
             RewardB_TrueVal += Agents[i].Rewards[1].TrueValue * probs[i]
         # Normalize true values
-        CostA_TrueVal /= sum(probs)*1.0
-        CostB_TrueVal /= sum(probs)*1.0
-        RewardA_TrueVal /= sum(probs)*1.0
-        RewardB_TrueVal /= sum(probs)*1.0
+        if sum(probs) > 0:
+            # Otherwise the probabilities will just be 0
+            CostA_TrueVal /= sum(probs)*1.0
+            CostB_TrueVal /= sum(probs)*1.0
+            RewardA_TrueVal /= sum(probs)*1.0
+            RewardB_TrueVal /= sum(probs)*1.0
         # Now update LAgent object
         LAgent.UpdateBeliefs(P_CostA, P_RewardA, P_CostB, P_RewardB)
         # And update true values

@@ -36,16 +36,17 @@ class Agent(object):
         ) - self.Costs[1].ExpectedValue()
         return np.argmax([UtilityA, UtilityB])
 
-    def ResampleBeliefs(self, Knowledge=[0, 0, 0, 0], TrueValueReset=False):
+    def ResampleBeliefs(self, Knowledge=[0, 0, 0, 0], FixValues=[0, 0, 0, 0]):
         """
         Generate a random belief distribution for each dimension
 
         Knowledge: vector determining if the sampled agent should know any dimension.
+        FixValues: vector determining if any of the values should not be reset.
         """
-        self.Costs[0].ResetProbabilities(Knowledge[0], TrueValueReset)
-        self.Costs[1].ResetProbabilities(Knowledge[1], TrueValueReset)
-        self.Rewards[0].ResetProbabilities(Knowledge[2], TrueValueReset)
-        self.Rewards[1].ResetProbabilities(Knowledge[3], TrueValueReset)
+        self.Costs[0].ResetProbabilities(Knowledge[0], FixValues[0])
+        self.Rewards[0].ResetProbabilities(Knowledge[1], FixValues[1])
+        self.Costs[1].ResetProbabilities(Knowledge[2], FixValues[2])
+        self.Rewards[1].ResetProbabilities(Knowledge[3], FixValues[3])
 
     def Normalize(self):
         """
