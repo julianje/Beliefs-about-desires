@@ -6,6 +6,8 @@ from Observer import *
 # Experiment 4a
 ###############
 
+# Given their choices, who was knowledgeable about the costs?
+
 # In Experiment 4s the reward don't matter as they're observable and matched
 Costs = [0, 1, 2]
 Rewards = [3]

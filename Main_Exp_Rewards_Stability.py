@@ -4,6 +4,7 @@ from Observer import *
 
 # Experiment 5
 
+# Given knowledge and ignorance, who changed her choice?
 # Two options and neither have a cost.
 Costs = [0]
 Rewards = [-3, -2, -1, 1, 2, 3]
@@ -26,6 +27,7 @@ ObsB = Observer(Belief(Costs, PC, 0), Belief(Rewards, PR, 1),
 ObsA.BuildPosterior(LAgent_Naive)
 ObsB.BuildPosterior(LAgent_Knowledgeable)
 
+# Given who changed her choice, who was knowledgeable and ignorant?
 # Experiment 5: Take the probability of each sample producing a choice change.
 p_Naive = sum([Samples_Naive[i].ChoiceChange() * Probabilities_Naive[i] for i in range(len(Samples_Naive))])
 p_Knowledgeable = sum([Samples_Knowledgeable[i].ChoiceChange() * Probabilities_Knowledgeable[i] for i in range(len(Samples_Knowledgeable))])

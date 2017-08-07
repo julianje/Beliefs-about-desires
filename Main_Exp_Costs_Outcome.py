@@ -2,7 +2,7 @@ from Belief import *
 from Agent import *
 from Observer import *
 
-# Experiments 3 and 4
+# Given cost knowledge, who has a strong preference for tomatoes?
 
 # Two options with cost.
 Costs = [0, 1, 2]

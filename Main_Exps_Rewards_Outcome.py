@@ -2,7 +2,10 @@ from Belief import *
 from Agent import *
 from Observer import *
 
+
 # Experiments 1 and 2
+
+# 1: Given reward knowledge, who said yum and who said yuck?
 
 # Two options and neither have a cost.
 Costs = [0]
@@ -47,6 +50,7 @@ p_correct /= Norm
 p_incorrect /= Norm
 # Model prediction: 0.7521700164388274
 
+# 1: Given who said yum and who said yuck, who was knowledgeable?
 # Experiment 2: Who was knowledgeable given that one got a positive utility and one got a negative one.
 # For each agent compute the probability that each agent gets a positive
 # utility and the probability that they get a negative utility conditioned
